@@ -123,7 +123,7 @@ router.post("/upload", authMiddleware, async (req, res) => {
         message: "Audio upload failed. Please try again."
     });
 }
-});
+);
 
 
 // 2. Process meeting
