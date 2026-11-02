@@ -550,7 +550,7 @@ function App() {
       const token = await getToken();
 
       const response = await fetch(
-        `http://localhost:5000/api/meetings/${meetingId}`,
+        `${API_BASE_URL}/api/meetings/${meetingId}`,
         {
           method: "DELETE",
           headers: {
