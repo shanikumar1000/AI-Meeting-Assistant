@@ -3,6 +3,8 @@ import { supabase } from "./lib/supabase";
 import { jsPDF } from "jspdf";
 import "./App.css";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
 function AnalyticsIcon({ type }) {
   const commonProps = {
     className: "analytics-svg-icon",
@@ -161,10 +163,10 @@ function App() {
       };
 
       const [historyResponse, analyticsResponse] = await Promise.all([
-        fetch("http://localhost:5000/api/meetings/history", {
+        fetch(`${API_BASE_URL}/api/meetings/history`, {
           headers
         }),
-        fetch("http://localhost:5000/api/meetings/analytics", {
+        fetch(`${API_BASE_URL}/api/meetings/analytics`, {
           headers
         })
       ]);
@@ -230,7 +232,7 @@ function App() {
       setMessage("Uploading audio...");
 
       const uploadResponse = await fetch(
-        "http://localhost:5000/api/meetings/upload",
+        `${API_BASE_URL}/api/meetings/upload`,
         {
           method: "POST",
           headers: {
@@ -254,7 +256,7 @@ function App() {
       setMessage("Transcribing and analyzing meeting...");
 
       const processResponse = await fetch(
-        "http://localhost:5000/api/meetings/process",
+        `${API_BASE_URL}/api/meetings/process`,
         {
           method: "POST",
           headers: {
@@ -294,7 +296,7 @@ function App() {
       const token = await getToken();
 
       const response = await fetch(
-        `http://localhost:5000/api/meetings/${meetingId}`,
+        `${API_BASE_URL}/api/meetings/${meetingId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -320,7 +322,7 @@ function App() {
       const token = await getToken();
 
       const response = await fetch(
-        `http://localhost:5000/api/meetings/tasks/${taskId}/status`,
+        `${API_BASE_URL}/api/meetings/tasks/${taskId}/status`,
         {
           method: "PATCH",
           headers: {
