@@ -110,13 +110,19 @@ router.post("/upload", authMiddleware, async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Audio Upload Error:", error.message);
+        console.error("Audio Upload Error:", error.stack || error);
 
         return res.status(500).json({
             success: false,
             message: "Audio upload failed. Please try again."
         });
     }
+
+    return res.status(500).json({
+        success: false,
+        message: "Audio upload failed. Please try again."
+    });
+}
 });
 
 
