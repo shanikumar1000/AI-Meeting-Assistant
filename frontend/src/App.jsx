@@ -754,7 +754,7 @@ function App() {
         <section className="transcript-section">
           <h2>Full Transcript</h2>
           <p className="transcript">
-            {transcript || "No transcript available."}
+            {transcript?.content || "No transcript available."}
           </p>
         </section>
       </div>
