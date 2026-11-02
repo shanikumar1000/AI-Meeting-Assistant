@@ -35,19 +35,21 @@ router.post("/upload", authMiddleware, async (req, res) => {
             });
         }
 
-        if (!allowedTypes.has(fileType.toLowerCase())) {
+        const normalizedFileType = fileType.toLowerCase();
+
+        if (!allowedTypes.has(normalizedFileType)) {
             return res.status(400).json({
                 success: false,
                 message: "Unsupported audio format."
             });
         }
 
+        // Normalize Base64 data.
         const normalizedBase64 = fileBase64.replace(/\s/g, "");
 
         if (
             normalizedBase64.length === 0 ||
-            normalizedBase64.length % 4 !== 0 ||
-            !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(normalizedBase64)
+            normalizedBase64.length % 4 !== 0
         ) {
             return res.status(400).json({
                 success: false,
@@ -55,15 +57,20 @@ router.post("/upload", authMiddleware, async (req, res) => {
             });
         }
 
+        // Decode and validate Base64 without a large complex regex.
         const fileBuffer = Buffer.from(normalizedBase64, "base64");
-        const maxFileSize = 35 * 1024 * 1024;
 
-        if (fileBuffer.length === 0) {
+        if (
+            fileBuffer.length === 0 ||
+            fileBuffer.toString("base64") !== normalizedBase64
+        ) {
             return res.status(400).json({
                 success: false,
-                message: "Audio file is empty."
+                message: "Invalid audio data."
             });
         }
+
+        const maxFileSize = 35 * 1024 * 1024;
 
         if (fileBuffer.length > maxFileSize) {
             return res.status(413).json({
@@ -90,7 +97,7 @@ router.post("/upload", authMiddleware, async (req, res) => {
         const { data, error } = await supabase.storage
             .from("meeting-audio")
             .upload(filePath, fileBuffer, {
-                contentType: fileType,
+                contentType: normalizedFileType,
                 upsert: false
             });
 
@@ -117,14 +124,7 @@ router.post("/upload", authMiddleware, async (req, res) => {
             message: "Audio upload failed. Please try again."
         });
     }
-
-    return res.status(500).json({
-        success: false,
-        message: "Audio upload failed. Please try again."
-    });
-}
-);
-
+});
 
 // 2. Process meeting
 router.post("/process", authMiddleware, async (req, res) => {
@@ -232,7 +232,7 @@ router.post("/process", authMiddleware, async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Meeting Processing Error:", error.message);
+        console.error("Meeting Processing Error:", error.stack || error);
 
         return res.status(500).json({
             success: false,
@@ -240,6 +240,8 @@ router.post("/process", authMiddleware, async (req, res) => {
         });
     }
 });
+
+
 // 3. Get meeting history
 router.get("/history", authMiddleware, async (req, res) => {
     try {
@@ -384,6 +386,8 @@ router.get("/:meetingId", authMiddleware, async (req, res) => {
         });
     }
 });
+
+
 // 6. Update task status
 router.patch("/tasks/:taskId/status", authMiddleware, async (req, res) => {
     try {
@@ -449,8 +453,6 @@ router.patch("/tasks/:taskId/status", authMiddleware, async (req, res) => {
         });
     }
 });
-
-
 // 7. Delete meeting
 router.delete("/:meetingId", authMiddleware, async (req, res) => {
     try {
